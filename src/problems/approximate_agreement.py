@@ -1,27 +1,20 @@
 from __future__ import annotations
-
 from dataclasses import dataclass
-from math import dist
-from typing import Iterable
-
-
+from typing import Sequence
+from .base import CorrectnessResult, Problem
+from .validators import vector_diameter
 @dataclass(frozen=True, slots=True)
-class ApproximateAgreementSpec:
-    epsilon: float
-
-    def agreement(self, outputs: Iterable[tuple[float, ...]]) -> bool:
-        points = list(outputs)
-        return all(dist(a, b) <= self.epsilon for i, a in enumerate(points) for b in points[i + 1 :])
-
-    def validity_coordinatewise(self, output: tuple[float, ...], correct_inputs: Iterable[tuple[float, ...]]) -> bool:
-        inputs = list(correct_inputs)
-        if not inputs:
-            return True
-        if any(len(x) != len(output) for x in inputs):
-            return False
-        for j, value in enumerate(output):
-            lo = min(x[j] for x in inputs)
-            hi = max(x[j] for x in inputs)
-            if value < lo or value > hi:
-                return False
-        return True
+class MultidimensionalApproximateAgreement(Problem):
+    dimension:int=2
+    epsilon:float=0.25
+    name:str="Multidimensional Approximate Agreement"
+    def decision_domain(self)->Sequence: return ((0.0,)*self.dimension,(0.5,)*self.dimension,(1.0,)*self.dimension)
+    def check(self,decisions,correct_inputs,correct_processes)->CorrectnessResult:
+        vals=[tuple(decisions[p]) for p in correct_processes if p in decisions]
+        if correct_inputs:
+            lo=[min(tuple(x)[d] for x in correct_inputs.values()) for d in range(self.dimension)]
+            hi=[max(tuple(x)[d] for x in correct_inputs.values()) for d in range(self.dimension)]
+            validity=all(all(lo[d]<=x[d]<=hi[d] for d in range(self.dimension)) for x in vals)
+        else: validity=True
+        diameter=vector_diameter(vals)
+        return CorrectnessResult(diameter<=self.epsilon,validity,len(vals)==len(correct_processes),{"diameter":diameter,"epsilon":self.epsilon})
