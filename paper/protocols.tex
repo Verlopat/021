@@ -1,6 +1,14 @@
-\section{Protocol Architecture}
-The constructive design target is
-\[
-\text{Protocol}=\text{L1 Gather}+D(C),
-\]
-where $C$ is an authenticated sender/value certificate and $D$ is the problem-specific decision rule. The current executable prototype provides a certificate-aware decision skeleton and explicitly records the gather-delivery assumption.
+\section{Protocols}\label{sec:protocols}
+\begin{center}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+Protocol & Level & Rounds & Decision rule & Problem\\
+\midrule
+count-crusader & $L_0$ & 1 & $n-f$ threshold & crusader\\
+count-connected & $L_0$ & 2 & $n-f$, then $f+1$/$n-f$ grades & connected consensus\\
+trimmed-midpoint & $L_0$ & $\lceil\log_2(\Delta/\varepsilon)\rceil$ & trim $f$ each side & approx. agreement\\
+phase-king & $L_1$ & $3(f+1)$ & $n-f$, $f+1$, king & Byzantine agreement\\
+\bottomrule
+\end{tabular}
+\end{center}
+Every protocol consumes only the output of its selected abstraction.

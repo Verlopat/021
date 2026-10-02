@@ -1,12 +1,6 @@
 __pycache__/
-*.py[cod]
 .pytest_cache/
 .venv/
-env/
-.env
-output/*
-!output/.gitkeep
-*.log
-.DS_Store
-.lean/
-.lake/
+output/
+results/
+*.pyc

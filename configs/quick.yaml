@@ -1,0 +1,10 @@
+seed: 20261002
+auth: B
+values: [A, B]
+max_exec: 2000
+experiments:
+  - {name: blind-crusader, problem: crusader, protocol: own-input, configs: [[2, 0]]}
+  - {name: crusader-L0, problem: crusader, protocol: count-crusader, configs: [[3, 1], [4, 1]], boundary_f: [1]}
+  - {name: cc-R2-L0, problem: connected, protocol: count-connected, R: 2, configs: [[3, 1], [4, 1]]}
+  - {name: mvba-L1, problem: mvba, protocol: phase-king, configs: [[3, 1], [4, 1]]}
+  - {name: approx-1d-L0, problem: approx, protocol: trimmed-midpoint, configs: [[3, 1], [4, 1]]}

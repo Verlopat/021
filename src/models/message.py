@@ -3,6 +3,9 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+BOT = "<bot>"
+OMIT = "<omit>"
+
 
 @dataclass(frozen=True, slots=True)
 class Message:
@@ -10,13 +13,14 @@ class Message:
     receiver: int
     round: int
     value: Any
-    kind: str = "proposal"
+    kind: str = "msg"
     authenticated: bool = True
     metadata: tuple[tuple[str, str], ...] = field(default_factory=tuple)
+    signature: str | None = None
 
     @property
     def label(self) -> str:
-        """L0-visible message label; payload contents are intentionally hidden."""
+        """L0-blind label: the message kind only, payload hidden."""
         return self.kind
 
     def to_dict(self) -> dict[str, Any]:
