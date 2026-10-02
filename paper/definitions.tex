@@ -1,8 +1,34 @@
 \section{Definitions}
-Let $A_0,A_1,A_2$ denote observation functions for L0, L1, and L2. L0 exposes only canonical counts of message labels. L1 adds structured authenticated sender/value certificates. L2 exposes complete message content.
 
-An L0 transition $T$ factors through $A_0$ if there exists $\widehat T$ such that
+Let $P=\{0,\ldots,n-1\}$ and let $f$ bound Byzantine processes. A communication round produces a finite message history $M$ for each receiver.
+
+The abstraction functions are:
+
 \[
-T(s,h)=\widehat T(s,A_0(h)).
+A_0(M)=\operatorname{multiset}\{\operatorname{label}(m):m\in M\},
 \]
-Define $h_1\sim_0 h_2$ iff $A_0(h_1)=A_0(h_2)$.
+
+\[
+A_1(M)=(A_0(M),C(M)),
+\]
+
+where $C(M)$ is the structured authenticated sender/value certificate, and
+
+\[
+A_2(M)=M.
+\]
+
+Define
+
+\[
+M_1\sim_i M_2 \iff A_i(M_1)=A_i(M_2).
+\]
+
+An L0 transition factors through $A_0$ when
+
+\[
+\exists \widehat T\;\forall s,M:
+T(s,M)=\widehat T(s,A_0(M)).
+\]
+
+The implementation also models explicit Byzantine sets, receiver-specific equivocation, bounded Heard-Of delivery choices, and problem-specific correctness predicates.
