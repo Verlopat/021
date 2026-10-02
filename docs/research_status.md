@@ -1,28 +1,71 @@
 # Research Status and Proof Boundary
 
-## Implemented
+## Implemented end-to-end
 
-- Formal L0/L1/L2 observation interfaces.
-- L0 canonical label-count abstraction.
-- L1 authenticated sender/value certificate abstraction.
+- L0 count-only abstraction.
+- L1 gather/echo certificate abstraction.
 - L2 full-content abstraction.
-- Executable factorization check for canonical L0 transitions.
-- Finite information-separation witness.
-- Byzantine equivocation/omission-oriented simulator primitives.
-- Connected-domain specification with a deterministic certificate decision rule.
-- Multivalued BA and multidimensional approximate-agreement specification helpers.
-- Crusader Agreement and exploratory Set/Vector Agreement contracts.
-- Deterministic output/testN artifact generation.
-- Lean core theorem for factorization and the induced equivalence relation.
+- Explicit message and execution models.
+- Finite Heard-Of mask generation.
+- Byzantine equivocation generator.
+- Omission and delay/reordering strategy descriptors.
+- Six problem contracts and correctness predicates.
+- L0/L1/L2 executable protocol implementations.
+- Bounded exhaustive model checker.
+- Observation-separation search.
+- Resilience sweep and result classification.
+- Replayable execution traces.
+- Fresh output/testN artifact generation.
+- Lean factorization and equivalence proofs.
+- CI for Python tests, Main.py, and Lean.
 
-## Deliberately not claimed as proved
+## What is now automated
 
-The following remain explicit research targets because the supplied project description does not uniquely fix the literature-compatible semantics required for a theorem: general L0/L1 and L1/L2 separation for Byzantine agreement, optimal resilience at n>3f for each listed problem, and a universal minimum abstraction theorem. The repository reports these as `TARGET_NOT_PROVED` instead of manufacturing unsupported results.
+For every bounded configuration the model checker records:
 
-## Authentication boundary
+- problem
+- abstraction
+- n
+- f
+- Byzantine set
+- correct inputs
+- protocol decisions
+- correctness result
+- complete message trace
 
-Authentication is modeled as a field on messages and surfaced inside L1 certificates. The research paper must decide whether authentication is an independent system assumption or part of the abstraction power before comparing resilience thresholds.
+Counterexamples are therefore concrete, replayable research artifacts.
 
-## Reproducibility rule
+## What remains a mathematical theorem obligation
 
-Every run uses an explicit seed and writes all observed traces and summaries under a fresh `output/testN` directory. Simulation is evidence-generating only; it is not treated as a proof of impossibility.
+The following are not hard-coded as facts:
+
+1. A universal L0/L1 separation theorem.
+2. A universal L1/L2 separation theorem.
+3. Optimal n > 3f resilience for every listed problem.
+4. A universal minimum-abstraction theorem L*(Pi).
+5. Equivalence of this project's exact models with any external literature definition.
+
+The implementation now provides the machinery needed to search for these results and to encode successful proof obligations.
+
+## Authentication
+
+Authentication is explicit on messages and certificates. Before comparing resilience results across abstractions, the paper must fix whether authentication is:
+
+- an independent system assumption, or
+- part of the communication abstraction.
+
+Changing this choice changes the problem being characterized.
+
+## Interpretation of finite results
+
+COUNTEREXAMPLE_FOUND means the implemented protocol violates its specified property in a concrete finite execution.
+
+NO_COUNTEREXAMPLE_IN_FINITE_SPACE means only that the configured bounded search did not find a violation.
+
+TARGET_NOT_PROVED means the corresponding general theorem has not been machine-checked.
+
+No finite search result is represented as a universal impossibility theorem.
+
+## Reproducibility
+
+All generated artifacts are written below a unique output/testN directory and include the experiment seed and configuration.
