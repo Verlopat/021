@@ -1,42 +1,19 @@
 from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Any
-
 from src.abstractions.l1 import L1GatherEcho
 from src.models.message import Message
-from src.problems.connected_consensus import CertificateDecisionRule, ConnectedDomain
-
-
+from src.problems.connected_consensus import ConnectedDomain, connected_consensus_decision
 @dataclass(frozen=True, slots=True)
 class L1GatherDecisionProtocol:
-    """Reusable L1 gather + problem-specific decision rule.
-
-    This is a protocol skeleton for the supplied research program. It assumes
-    the gather layer has delivered authenticated sender/value records; it does
-    not claim to implement a complete Byzantine reliable-broadcast protocol.
-    """
-
-    quorum: int
-    domain: ConnectedDomain = ConnectedDomain()
-
-    def observe(self, messages: list[Message]) -> dict[str, Any]:
-        obs = L1GatherEcho().observe(messages)
-        return obs.to_dict()
-
-    def decide(self, messages: list[Message]) -> str:
-        certificate = L1GatherEcho().certificate(messages)
-        values = {
-            entry.sender: entry.value
-            for entry in certificate
-            if entry.authenticated and isinstance(entry.value, str)
-        }
-        return CertificateDecisionRule(self.quorum).decide(values, self.domain)
-
-    def run(self, messages: list[Message]) -> dict[str, Any]:
-        return {
-            "observation": self.observe(messages),
-            "decision": self.decide(messages),
-            "quorum": self.quorum,
-            "assumption": "authenticated gather/certificate delivery",
-        }
+    quorum:int
+    domain:ConnectedDomain=ConnectedDomain()
+    def observe(self,messages:list[Message])->dict[str,Any]: return L1GatherEcho().observe(messages).to_dict()
+    def decide(self,messages:list[Message])->str:
+        cert=L1GatherEcho().certificate(messages); counts={}
+        for e in cert:
+            if e.authenticated and isinstance(e.value,str) and e.value in self.domain.vertices: counts[e.value]=counts.get(e.value,0)+1
+        qualified=[(c,v) for v,c in counts.items() if c>=self.quorum]
+        return sorted(qualified,key=lambda x:(-x[0],repr(x[1])))[0][1] if qualified else connected_consensus_decision(counts.keys(),self.domain)
+    def run(self,messages:list[Message])->dict[str,Any]:
+        return {"observation":self.observe(messages),"decision":self.decide(messages),"quorum":self.quorum,"assumption":"authenticated gather/certificate delivery"}
