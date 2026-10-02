@@ -1,32 +1,25 @@
-\section{Theorems and Research Obligations}
-
-\begin{theorem}[L0 factorization consequence]
-If $T$ factors through $A_0$ and $A_0(M_1)=A_0(M_2)$, then
-$T(s,M_1)=T(s,M_2)$.
+\section{Results}\label{sec:results}
+\begin{theorem}[Multi-round factorization; Lean \texttt{runRounds\_congr}]
+If every round transition factors through an observation function $A$, equal observations in every round imply equal final states.
 \end{theorem}
-
-This theorem and the equivalence laws of $\sim_0$ are machine-checked in Lean.
-
-\subsection{Separation obligation}
-
-For a selected problem $\Pi$, an L0/L1 separation requires both:
-
-\[
-\Pi\in\operatorname{Solv}(L_1,n>3f)
-\]
-
-and
-
-\[
-\Pi\notin\operatorname{Solv}(L_0,n>3f).
-\]
-
-The software searches for finite indistinguishability witnesses and protocol counterexamples. A finite counterexample is evidence for a specific protocol/model instance, not by itself a universal impossibility theorem.
-
-Similarly, an L1/L2 separation requires a problem for which L2 solves the specification while L1 cannot under the same formal assumptions.
-
-\subsection{Resilience characterization}
-
-The target matrix contains Crusader Agreement, Connected Consensus, Multidimensional Approximate Agreement, Multivalued Byzantine Agreement, Set Agreement, and Vector Agreement. Every cell must ultimately be supported by a construction, impossibility proof, or exactly matched literature theorem.
-
-Until that support exists, the cell remains a research result rather than a theorem claim.
+\begin{theorem}[Blind impossibility; Lean \texttt{blind\_consensus\_impossible}]
+For every $n\ge2$, no $L_0^{\mathrm{blind}}$ algorithm solves binary consensus, even with $f=0$.
+\end{theorem}
+\paragraph{Proof sketch.} With $f=0$ every process sees only the same fixed count vector, so its decision depends only on its own input. Validity on uniform executions forces different outputs for different inputs, while a mixed execution requires agreement.
+\begin{theorem}[Crusader agreement at $L_0$]
+For $n>3f$, the one-round threshold rule \textquotedblleft adopt $v$ iff at least $n-f$ copies of $v$ arrive; otherwise $\bot$\textquotedblright\ solves crusader agreement.
+\end{theorem}
+\begin{theorem}[Connected consensus $R=2$ at $L_0$]
+For $n>3f$, the two-round graded threshold protocol in \texttt{CountConnectedConsensus} satisfies spider-graph agreement and validity.
+\end{theorem}
+\begin{theorem}[One-dimensional approximate agreement at $L_0$]
+For $n>3f$, trimmed midpoint iterations reduce the honest diameter geometrically.
+\end{theorem}
+\begin{theorem}[Multivalued Byzantine agreement at $L_1$]
+For $n>3f$, the phase-king implementation uses sender identity only for the fixed king and runs for $3(f+1)$ rounds.
+\end{theorem}
+\begin{lemma}[Anonymous counts cannot name the king; Lean \texttt{king\_not\_count\_definable}]
+No function of anonymous counts can return the value sent by a fixed sender.
+\end{lemma}
+\paragraph{Main open separation.} The software treats $L_0<L_1$ for Byzantine agreement as a candidate. The homonyms literature must be checked against the exact anonymous-count model, or a direct symmetry impossibility must be supplied before promotion to theorem.
+\paragraph{Open.} Connected consensus for $R\ge3$, multidimensional approximate agreement at $L_0$, and an $L_1/L_2$ separation under bounded certificates remain open.

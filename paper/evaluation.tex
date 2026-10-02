@@ -1,2 +1,7 @@
-\section{Evaluation}
-Every run uses an explicit seed and writes a fresh \texttt{output/testN} directory. The evaluation records finite information-separation results, correctness-oriented assertions for the implemented specifications, resilience-sweep rows, and execution traces. Simulation is treated as a counterexample-discovery and validation mechanism, not as a proof of impossibility.
+\section{Evaluation}\label{sec:evaluation}
+Run \texttt{python run\_experiments.py --config configs/all.yaml}. For each fixed protocol, fault set and honest-input assignment, the model checker enumerates all finite adversary tables when the search space is below \texttt{max\_exec}; otherwise it runs all named strategies and seeded random tables. Counterexamples are replayed into JSON. A no-counterexample result is not a universal theorem unless the checked space is exhaustive.
+\begin{table}[h]
+\centering
+\input{tables/resilience}
+\caption{Observed resilience boundaries from the reproducible finite experiments.}
+\end{table}

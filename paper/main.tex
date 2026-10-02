@@ -1,23 +1,20 @@
 \documentclass[11pt]{article}
-\usepackage{amsmath,amssymb,amsthm,booktabs}
+\usepackage{amsmath,amssymb,amsthm,booktabs,mathtools}
+\newtheorem{lemma}{Lemma}
 \newtheorem{theorem}{Theorem}
 \title{A Communication-Abstraction Framework for Byzantine Resilience}
 \author{Research Software Prototype}
 \begin{document}
 \maketitle
-
 \begin{abstract}
-This reproducible software package formalizes a three-level communication-information hierarchy (L0, L1, L2), supplies finite indistinguishability witnesses, and provides hooks for proving problem-specific Byzantine resilience results. General separation and optimal-resilience claims are intentionally represented as theorem targets until the exact problem semantics and adversary assumptions are fixed.
+We classify synchronous Byzantine algorithms by the information their round transitions may use: message counts only ($L_0^{\mathrm{blind}}$), anonymous value counts ($L_0$), sender-attributed certificates ($L_1$), or full content ($L_2$). Crusader agreement, graded connected consensus and one-dimensional approximate agreement are solvable at $L_0$ with optimal resilience $n>3f$, while Byzantine agreement is the principal $L_0/L_1$ separation candidate. Core lemmas are machine-checked in Lean 4; resilience boundaries are reproduced by exhaustive or sampled model checking.
 \end{abstract}
-
 \input{definitions}
 \input{theorems}
 \input{protocols}
 \input{evaluation}
-
 \section{Reproducibility}
-Run \texttt{python3 Main.py}; each invocation creates a fresh directory under \texttt{output/testN}.
-
+Run \texttt{python run\_experiments.py --config configs/all.yaml} (full) or \texttt{python3 Main.py} (quick).
 \bibliographystyle{plain}
 \bibliography{references}
 \end{document}

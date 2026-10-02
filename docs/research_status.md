@@ -1,71 +1,30 @@
-# Research Status and Proof Boundary
+# Research Status
 
-## Implemented end-to-end
+Model: synchronous communication-closed rounds, reliable honest links, rushing adaptive Byzantine adversary, authentication Model B (no transferable signatures).
 
-- L0 count-only abstraction.
-- L1 gather/echo certificate abstraction.
-- L2 full-content abstraction.
-- Explicit message and execution models.
-- Finite Heard-Of mask generation.
-- Byzantine equivocation generator.
-- Omission and delay/reordering strategy descriptors.
-- Six problem contracts and correctness predicates.
-- L0/L1/L2 executable protocol implementations.
-- Bounded exhaustive model checker.
-- Observation-separation search.
-- Resilience sweep and result classification.
-- Replayable execution traces.
-- Fresh output/testN artifact generation.
-- Lean factorization and equivalence proofs.
-- CI for Python tests, Main.py, and Lean.
+## Abstraction levels
 
-## What is now automated
+| Level | Observation | Code |
+|---|---|---|
+| L0-blind | counts of protocol-fixed kinds | `L0Blind` |
+| L0 | multiset of (kind, value), senders erased | `L0CountOnly` |
+| L1 | L0 + sender-attributed entries | `L1GatherEcho` |
+| L2 | full messages, including extra payload | `L2FullContent` |
 
-For every bounded configuration the model checker records:
+Protocols never see raw messages: `src/simulation/rounds.py` supplies only A_i(M).
 
-- problem
-- abstraction
-- n
-- f
-- Byzantine set
-- correct inputs
-- protocol decisions
-- correctness result
-- complete message trace
+## Results
 
-Counterexamples are therefore concrete, replayable research artifacts.
+- L0-blind is impossible for binary consensus even with f=0; the core information gap is machine-checked in Lean.
+- Crusader agreement, connected consensus R <= 2, and 1-D approximate agreement have L0 protocols for n > 3f.
+- Multivalued Byzantine agreement has an L1 phase-king implementation for n > 3f.
+- The main unresolved separation is L0 < L1 for Byzantine agreement; the homonyms result still needs an exact model match or a direct symmetry proof.
+- L1 versus L2 is open as a solvability question under unrestricted certificates; the natural remaining question is complexity under bounded certificates.
 
-## What remains a mathematical theorem obligation
+## Open obligations
 
-The following are not hard-coded as facts:
-
-1. A universal L0/L1 separation theorem.
-2. A universal L1/L2 separation theorem.
-3. Optimal n > 3f resilience for every listed problem.
-4. A universal minimum-abstraction theorem L*(Pi).
-5. Equivalence of this project's exact models with any external literature definition.
-
-The implementation now provides the machinery needed to search for these results and to encode successful proof obligations.
-
-## Authentication
-
-Authentication is explicit on messages and certificates. Before comparing resilience results across abstractions, the paper must fix whether authentication is:
-
-- an independent system assumption, or
-- part of the communication abstraction.
-
-Changing this choice changes the problem being characterized.
-
-## Interpretation of finite results
-
-COUNTEREXAMPLE_FOUND means the implemented protocol violates its specified property in a concrete finite execution.
-
-NO_COUNTEREXAMPLE_IN_FINITE_SPACE means only that the configured bounded search did not find a violation.
-
-TARGET_NOT_PROVED means the corresponding general theorem has not been machine-checked.
-
-No finite search result is represented as a universal impossibility theorem.
-
-## Reproducibility
-
-All generated artifacts are written below a unique output/testN directory and include the experiment seed and configuration.
+1. Directly prove, or exactly match from literature, L0 impossibility for Byzantine agreement with f >= 1.
+2. Analyze connected consensus for R >= 3 at L0.
+3. Implement multidimensional safe-area approximate agreement at L0.
+4. Formalize the L0 threshold proof in Lean.
+5. Map every literature theorem to the exact abstraction/authentication/scheduler model.

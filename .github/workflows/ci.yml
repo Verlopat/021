@@ -5,7 +5,7 @@ on:
 permissions:
   contents: read
 jobs:
-  python-tests:
+  python:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,17 +16,20 @@ jobs:
       - run: python -m pip install -r requirements.txt
       - run: pytest -q
       - run: python3 Main.py
-  lean-check:
+  lean:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: lean
     steps:
       - uses: actions/checkout@v4
-      - name: Install elan and Lean
+      - name: Install elan
         run: |
-          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain leanprover/lean4:stable
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - run: lake env lean Basic.lean
-        working-directory: lean
-      - run: lake env lean Research.lean
-        working-directory: lean
-      - run: lake env lean Main.lean
-        working-directory: lean
+      - run: lake build
+      - name: No sorry / admit / custom axioms
+        run: |
+          ! grep -nE '\bsorry\b|\badmit\b|^axiom ' *.lean
+          lake env lean CheckAxioms.lean | tee axioms.txt
+          if grep 'depends on axioms:' axioms.txt | grep -vE "depends on axioms: \[(propext|Quot.sound)(, (propext|Quot.sound))*\]$"; then exit 1; fi

@@ -1,31 +1,43 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Iterable, Sequence
+from typing import Any, Sequence
+
+from src.models.message import BOT
 from .base import CorrectnessResult, Problem
-from .validators import all_equal, majority
-@dataclass(frozen=True, slots=True)
-class ConnectedDomain:
-    vertices: tuple[str,...]=("A","B","C")
-    edges: tuple[tuple[str,str],...]=(("A","B"),("B","C"))
-    def __post_init__(self):
-        v=set(self.vertices)
-        if any(a not in v or b not in v for a,b in self.edges): raise ValueError("edge references unknown vertex")
-    def connected_hull(self,values:Iterable[str])->set[str]:
-        vals=set(values)
-        if not vals: return set(self.vertices)
-        if not vals.issubset(set(self.vertices)): raise ValueError("value outside domain")
-        idx={v:i for i,v in enumerate(self.vertices)}
-        lo=min(idx[v] for v in vals); hi=max(idx[v] for v in vals)
-        return set(self.vertices[lo:hi+1])
+
+CENTER = (BOT, 0)
+
+
+def spider_distance(a: tuple, b: tuple) -> int:
+    (va, ra), (vb, rb) = a, b
+    if va == vb:
+        return abs(ra - rb)
+    return ra + rb
+
+
 @dataclass(frozen=True, slots=True)
 class ConnectedConsensus(Problem):
-    domain: ConnectedDomain=ConnectedDomain()
-    name:str="Connected Consensus"
-    def decision_domain(self)->Sequence[str]: return self.domain.vertices
-    def check(self,decisions,correct_inputs,correct_processes)->CorrectnessResult:
-        vals=[decisions[p] for p in correct_processes if p in decisions]
-        hull=self.domain.connected_hull(correct_inputs.values())
-        return CorrectnessResult(all_equal(vals),all(v in hull for v in vals),len(vals)==len(correct_processes),{"hull":sorted(hull),"decisions":vals})
-def connected_consensus_decision(values:Iterable[str],domain:ConnectedDomain)->str:
-    vals=[v for v in values if v in domain.vertices]
-    return majority(vals) if vals else domain.vertices[0]
+    values: tuple[Any, ...] = ("A", "B")
+    R: int = 1
+    name: str = "Connected Consensus"
+
+    def decision_domain(self) -> Sequence[Any]:
+        return self.values
+
+    def vertices(self) -> list[tuple]:
+        return [CENTER] + [(v, r) for v in self.values for r in range(1, self.R + 1)]
+
+    def check(self, decisions, correct_inputs, correct_processes) -> CorrectnessResult:
+        vals = [decisions.get(p) for p in sorted(correct_processes)]
+        termination = all(v is not None for v in vals)
+        if not termination:
+            return CorrectnessResult(False, False, False, {"decisions": vals})
+        verts = set(self.vertices())
+        agreement = all(spider_distance(a, b) <= 1 for a in vals for b in vals)
+        inputs = set(correct_inputs.values())
+        if len(inputs) == 1:
+            validity = all(v == (next(iter(inputs)), self.R) for v in vals)
+        else:
+            validity = all(v in verts and (v == CENTER or v[0] in inputs) for v in vals)
+        return CorrectnessResult(agreement, validity, termination, {"decisions": vals, "R": self.R})

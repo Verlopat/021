@@ -1,34 +1,13 @@
-\section{Definitions}
-
-Let $P=\{0,\ldots,n-1\}$ and let $f$ bound Byzantine processes. A communication round produces a finite message history $M$ for each receiver.
-
-The abstraction functions are:
-
+\section{Model and Definitions}\label{sec:model}
+\paragraph{System.} Processes $P=\{0,\ldots,n-1\}$; at most $f$ are Byzantine. Computation proceeds in synchronous communication-closed rounds. Honest-to-honest messages are delivered; Byzantine processes may equivocate, omit, and choose adaptively after observing honest broadcasts.
+\paragraph{Authentication.} Model B is the default: direct channels identify the sender but nothing is transferable. Model A adds unforgeable signatures. All resilience claims in this paper refer to Model B.
+\paragraph{Observations.} For a multiset $M$ of messages $(s,\kappa,v,\mu)$,
 \[
-A_0(M)=\operatorname{multiset}\{\operatorname{label}(m):m\in M\},
-\]
-
-\[
-A_1(M)=(A_0(M),C(M)),
-\]
-
-where $C(M)$ is the structured authenticated sender/value certificate, and
-
-\[
+A_0^{\mathrm{blind}}(M)=\{\!\{\kappa\}\!\},\quad
+A_0(M)=\{\!\{(\kappa,v)\}\!\},\quad
+A_1(M)=\left(A_0(M),\{(s,\kappa,v)\}\right),\quad
 A_2(M)=M.
 \]
-
-Define
-
-\[
-M_1\sim_i M_2 \iff A_i(M_1)=A_i(M_2).
-\]
-
-An L0 transition factors through $A_0$ when
-
-\[
-\exists \widehat T\;\forall s,M:
-T(s,M)=\widehat T(s,A_0(M)).
-\]
-
-The implementation also models explicit Byzantine sets, receiver-specific equivocation, bounded Heard-Of delivery choices, and problem-specific correctness predicates.
+The induced equivalence is $M_1\sim_i M_2\iff A_i(M_1)=A_i(M_2)$.
+\paragraph{Algorithms.} A level-$L_i$ round transition factors through $A_i$: $T(s,M)=\widehat T(s,A_i(M))$. The implementation enforces this by passing only abstraction observations to protocols.
+\paragraph{Problems.} Crusader agreement, connected consensus on the spider graph, multivalued Byzantine agreement, and $\varepsilon$-approximate agreement with convex-hull validity.
