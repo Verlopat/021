@@ -1,65 +1,31 @@
-"""Finite connected-domain agreement model.
-
-This module intentionally uses a graph-connected specification as an executable
-research model; it is not presented as a proof that every literature definition
-of connected consensus has the same thresholds.
-"""
 from __future__ import annotations
-
 from dataclasses import dataclass
-from typing import Iterable
-
-
+from typing import Iterable, Sequence
+from .base import CorrectnessResult, Problem
+from .validators import all_equal, majority
 @dataclass(frozen=True, slots=True)
 class ConnectedDomain:
-    vertices: tuple[str, ...] = ("A", "B", "C")
-    edges: tuple[tuple[str, str], ...] = (("A", "B"), ("B", "C"))
-
-    def __post_init__(self) -> None:
-        v = set(self.vertices)
-        if any(a not in v or b not in v for a, b in self.edges):
-            raise ValueError("edge references unknown vertex")
-
-    def connected_hull(self, values: Iterable[str]) -> set[str]:
-        values = set(values)
-        if not values:
-            return set(self.vertices)
-        if not values.issubset(set(self.vertices)):
-            raise ValueError("value outside connected domain")
-        index = {v: i for i, v in enumerate(self.vertices)}
-        lo, hi = min(index[v] for v in values), max(index[v] for v in values)
-        return set(self.vertices[lo : hi + 1])
-
-
+    vertices: tuple[str,...]=("A","B","C")
+    edges: tuple[tuple[str,str],...]=(("A","B"),("B","C"))
+    def __post_init__(self):
+        v=set(self.vertices)
+        if any(a not in v or b not in v for a,b in self.edges): raise ValueError("edge references unknown vertex")
+    def connected_hull(self,values:Iterable[str])->set[str]:
+        vals=set(values)
+        if not vals: return set(self.vertices)
+        if not vals.issubset(set(self.vertices)): raise ValueError("value outside domain")
+        idx={v:i for i,v in enumerate(self.vertices)}
+        lo=min(idx[v] for v in vals); hi=max(idx[v] for v in vals)
+        return set(self.vertices[lo:hi+1])
 @dataclass(frozen=True, slots=True)
-class ConnectedConsensusSpec:
-    domain: ConnectedDomain = ConnectedDomain()
-
-    def validity(self, decision: str, correct_inputs: Iterable[str]) -> bool:
-        return decision in self.domain.connected_hull(correct_inputs)
-
-    def agreement(self, decisions: Iterable[str]) -> bool:
-        decisions = list(decisions)
-        return len(set(decisions)) <= 1
-
-    def all_same_validity(self, decision: str, value: str) -> bool:
-        return decision == value
-
-
-@dataclass(frozen=True, slots=True)
-class CertificateDecisionRule:
-    quorum: int
-
-    def decide(self, certificate_values: dict[int, str], domain: ConnectedDomain) -> str:
-        counts: dict[str, int] = {}
-        for value in certificate_values.values():
-            if value not in domain.vertices:
-                continue
-            counts[value] = counts.get(value, 0) + 1
-        qualified = sorted(((-count, value) for value, count in counts.items() if count >= self.quorum))
-        if qualified:
-            return qualified[0][1]
-        if counts:
-            ordered = sorted(counts)
-            return ordered[len(ordered) // 2]
-        return domain.vertices[0]
+class ConnectedConsensus(Problem):
+    domain: ConnectedDomain=ConnectedDomain()
+    name:str="Connected Consensus"
+    def decision_domain(self)->Sequence[str]: return self.domain.vertices
+    def check(self,decisions,correct_inputs,correct_processes)->CorrectnessResult:
+        vals=[decisions[p] for p in correct_processes if p in decisions]
+        hull=self.domain.connected_hull(correct_inputs.values())
+        return CorrectnessResult(all_equal(vals),all(v in hull for v in vals),len(vals)==len(correct_processes),{"hull":sorted(hull),"decisions":vals})
+def connected_consensus_decision(values:Iterable[str],domain:ConnectedDomain)->str:
+    vals=[v for v in values if v in domain.vertices]
+    return majority(vals) if vals else domain.vertices[0]
