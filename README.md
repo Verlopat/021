@@ -1,8 +1,6 @@
-# 021 — Communication-Abstraction Characterization for Byzantine Resilience
+# 021 — Complete Communication-Abstraction Research Framework
 
-A reproducible research software framework implementing the supplied L0/L1/L2 communication-abstraction model, finite indistinguishability witnesses, Byzantine execution primitives, problem specifications, resilience sweeps, reporting, and a Lean core verification target.
-
-> **Proof boundary:** this repository does not pretend that finite experiments establish general impossibility or optimal-resilience theorems. Those claims remain explicitly marked as research targets until the exact problem definitions and adversary/authentication assumptions are fixed.
+This repository is the executable implementation of the proposed L0/L1/L2 Byzantine-resilience research program. It contains the communication abstractions, explicit round/execution model, Byzantine strategy generators, six problem specifications, executable protocols, bounded exhaustive model checking, observation-separation search, simulation, Lean verification, paper sources, and reproducible reporting.
 
 ## One-command workflow
 
@@ -10,43 +8,46 @@ A reproducible research software framework implementing the supplied L0/L1/L2 co
 python3 Main.py
 ```
 
-Every invocation creates a new folder: `output/test1`, `output/test2`, ..., without overwriting prior runs.
+Every invocation creates a new output/testN directory. No previous run is overwritten.
 
-## What the workflow executes
+## What Main.py runs
 
-1. Builds an L0/L1/L2 finite information-separation witness.
-2. Checks the canonical-round L0 factorization property.
-3. Produces separation/theorem-status metadata.
-4. Runs a deterministic finite `n,f` sweep.
-5. Executes a Byzantine equivocation trace and the reusable L1 gather + decision protocol skeleton.
-6. Writes JSON, CSV, JSONL trace, Markdown, manifest, log, and an optional PNG.
+1. L0/L1/L2 information witness.
+2. L0 factorization check.
+3. L0/L1 observation-separation search.
+4. Finite resilience sweep.
+5. Six-problem bounded exhaustive model checking.
+6. Byzantine equivocation simulation.
+7. L1 certificate protocol execution.
+8. JSON/CSV/JSONL/Markdown/PNG reporting.
+9. Run manifest and structured logging.
 
-## Repository layout
+## Important scientific boundary
+
+The implementation is complete as an experimental/formal framework, but finite model checking is not silently promoted to a universal theorem. A result is reported as one of:
+
+- COUNTEREXAMPLE_FOUND
+- NO_COUNTEREXAMPLE_IN_FINITE_SPACE
+- TARGET_NOT_PROVED
+
+A universal claim such as L0 < L1 or optimal n > 3f is promoted to a theorem only after the corresponding problem semantics, adversary model, authentication assumptions, and proof are formalized.
+
+## Architecture
 
 ```text
-021/
-├── Main.py
-├── README.md
-├── configs/default.json
-├── src/
-│   ├── abstractions/
-│   ├── adversary/
-│   ├── analysis/
-│   ├── models/
-│   ├── problems/
-│   └── reporting/
-├── tests/
-├── lean/
-├── paper/main.tex
-├── docs/research_status.md
-└── .github/workflows/ci.yml
+Main.py
+  ├── abstractions: L0 / L1 / L2
+  ├── models: messages / rounds / executions / Heard-Of
+  ├── adversary: equivocation / omission / delay / adaptive strategy descriptors
+  ├── problems: Crusader / Connected / Approximate / MVBA / Set / Vector
+  ├── protocols: L0 count-only / L1 certificate / L2 full-content
+  ├── analysis: separation / model checking / resilience characterization
+  ├── simulation: replayable Byzantine executions
+  ├── formal: Python-side theorem specifications
+  └── Lean: machine-checked abstraction core
 ```
 
-## Environment
-
-The runtime requires Python 3.10+ for the core package. The optional scientific/reporting stack is listed in `requirements.txt`. Lean verification uses the toolchain declared in `lean/lean-toolchain`.
-
-## Install dependencies
+## Installation
 
 ```bash
 python3 -m venv .venv
@@ -55,11 +56,23 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-The core workflow uses the Python standard library and will still run when optional plotting libraries are unavailable; the plot is then skipped with a warning.
+## Configuration
 
-## Environment configuration
+```bash
+cp .env.example .env
+```
 
-Copy `.env.example` to `.env` and override values such as `RANDOM_SEED`, `DEFAULT_N`, `DEFAULT_F`, `OUTPUT_ROOT`, and `LOG_LEVEL`.
+Supported overrides include:
+
+```text
+RANDOM_SEED
+DEFAULT_N
+DEFAULT_F
+OUTPUT_ROOT
+FULL_MATRIX_MAX_N
+MODEL_CHECK_MAX_EXEC
+LOG_LEVEL
+```
 
 ## Tests
 
@@ -67,26 +80,61 @@ Copy `.env.example` to `.env` and override values such as `RANDOM_SEED`, `DEFAUL
 pytest
 ```
 
-## Lean core
-
-With Lean/Lake installed:
+## Lean
 
 ```bash
 cd lean
 lake env lean Basic.lean
 ```
 
-## Research model implemented
+## Output
 
-### L0
-Only canonical counts of message labels are visible. Payload values and sender identities are not exposed by `observe()`.
+Each run contains:
 
-### L1
-L0 counts are augmented with an authenticated sender/value certificate. The abstraction is deliberately structured rather than arbitrary payload semantics.
+```text
+output/testN/
+├── README.md
+├── manifest.json
+├── run.log
+├── l0_l1_l2_witness.json
+├── factorization_check.json
+├── observation_separation_search.json
+├── separation_report.json
+├── research_matrix.json
+├── resilience_sweep.json
+├── resilience_sweep.csv
+├── full_model_check.json
+├── full_model_check_summary.json
+├── simulation_summary.json
+├── execution_trace.jsonl
+└── resilience_boundary.png
+```
 
-### L2
-Full message contents are retained.
+## Research artifacts
 
-## Current status
+The bounded model checker enumerates Byzantine fault sets and finite receiver-specific Byzantine payload assignments. It executes the implemented protocol for each abstraction and evaluates agreement, validity, termination, and approximate/vector constraints where applicable.
 
-The finite information witness demonstrates that the implemented observation functions distinguish histories at progressively higher levels. The broader claims `L0 < L1`, `L1 < L2`, and optimal `n > 3f` resilience for specific literature-defined problems require additional formal problem semantics and proofs.
+This gives reproducible counterexamples and finite evidence. It does not claim infinite-state impossibility from finite search.
+
+## Formal core
+
+The Lean development formalizes:
+
+```text
+FactorsThrough
+Indistinguishable
+L0 transition invariance
+reflexivity
+symmetry
+transitivity
+```
+
+The Lean proof is deliberately independent of Python representation details so the abstraction theorem can later be instantiated with a richer formal message model.
+
+## Paper
+
+The paper directory contains the formal definitions, theorem statements, protocol construction, evaluation methodology, and bibliography skeleton. It is designed to consume generated artifacts from output/testN.
+
+## Development principle
+
+The system is intentionally capable of disproving the proposed lattice. If a counterexample invalidates a candidate theorem, the software records it instead of forcing the expected result.
