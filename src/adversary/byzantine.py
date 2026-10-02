@@ -1,40 +1,35 @@
 from __future__ import annotations
-
 from dataclasses import dataclass
-from typing import Iterable
-
+from typing import Iterable, Sequence
 from src.models.message import Message
-from src.models.system import Execution, SystemConfig
-
 
 @dataclass(frozen=True, slots=True)
 class ByzantineAdversary:
-    byzantine: frozenset[int]
+    faulty:frozenset[int]
+    adaptive:bool=False
+    def validate(self,n:int,f:int)->None:
+        if any(p<0 or p>=n for p in self.faulty): raise ValueError("faulty process outside system")
+        if len(self.faulty)>f: raise ValueError("fault bound exceeded")
 
-    def validate(self, n: int, f: int) -> None:
-        if len(self.byzantine) > f:
-            raise ValueError("adversary exceeds configured Byzantine budget")
-        if not self.byzantine.issubset(set(range(n))):
-            raise ValueError("unknown Byzantine process id")
+    def equivocate(self,sender:int,receivers:Iterable[int],values:Sequence[str],round_id:int=1)->list[Message]:
+        if sender not in self.faulty: raise ValueError("sender is not Byzantine")
+        values=tuple(values)
+        if not values: raise ValueError("values cannot be empty")
+        return [Message(sender,r,round_id,values[i%len(values)],"proposal",True) for i,r in enumerate(receivers)]
 
-    def equivocate(self, n: int, round_id: int, sender: int, values: dict[int, object], *, authenticated: bool = True) -> Execution:
-        config = SystemConfig(n=n, f=len(self.byzantine))
-        self.validate(n, config.f)
-        messages = [Message(sender, receiver, round_id, value, authenticated=authenticated) for receiver, value in values.items()]
-        return Execution(config, messages)
+    def omit(self,messages:Sequence[Message],receiver:int,sender:int)->list[Message]:
+        return [m for m in messages if not (m.sender==sender and m.receiver==receiver)]
 
+    def delay(self,messages:Sequence[Message],receiver:int,sender:int,new_round:int)->list[Message]:
+        return [Message(m.sender,m.receiver,new_round if m.sender==sender and m.receiver==receiver else m.round,m.value,m.kind,m.authenticated,m.metadata) for m in messages]
 
-def adversarial_trace(n: int, f: int, byzantine: Iterable[int], round_id: int = 1) -> list[Message]:
-    """Build a deterministic equivocation trace used by the finite witness tests."""
-    bad = set(byzantine)
-    if len(bad) > f:
-        raise ValueError("too many Byzantine processes")
-    trace: list[Message] = []
+def adversarial_trace(n:int,f:int,byzantine:Iterable[int],round_id:int=1)->list[Message]:
+    bad=set(byzantine); result=[]
     for sender in range(n):
         for receiver in range(n):
-            if sender in bad:
-                value = "A" if receiver % 2 == 0 else "C"
+            if sender in bad and sender!=receiver:
+                value="A" if receiver%2==0 else "C"
             else:
-                value = "B"
-            trace.append(Message(sender, receiver, round_id, value, authenticated=True))
-    return trace
+                value="B"
+            result.append(Message(sender,receiver,round_id,value,"proposal",True))
+    return result
