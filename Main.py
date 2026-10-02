@@ -81,7 +81,7 @@ def run()->Path:
               [[r["n"],r["f"],r["abstraction"],r["witness_pass"],r["notes"]] for r in sweep["rows"]])
 
     logger.info("running bounded exhaustive model checker")
-    matrix=run_full_characterization(max_n=cfg["full_matrix_max_n"])
+    matrix=run_full_characterization(max_n=cfg["full_matrix_max_n"],max_exec=cfg["model_check_max_exec"])
     write_json(out/"full_model_check.json",matrix)
     write_json(out/"full_model_check_summary.json",summarize_matrix(matrix))
 
@@ -101,6 +101,7 @@ def run()->Path:
               "output_dir":str(out.relative_to(ROOT)),
               "artifacts":sorted(p.name for p in out.iterdir()),
               "workflow":"full bounded model-checking + simulation + separation search",
+              "model_check_max_exec":cfg["model_check_max_exec"],
               "theorem_policy":"finite evidence is never promoted to a universal theorem"}
     write_json(out/"manifest.json",manifest)
     logger.info("completed research workflow: %s",out)
