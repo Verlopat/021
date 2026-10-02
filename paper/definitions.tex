@@ -1,0 +1,8 @@
+\section{Definitions}
+Let $A_0,A_1,A_2$ denote observation functions for L0, L1, and L2. L0 exposes only canonical counts of message labels. L1 adds structured authenticated sender/value certificates. L2 exposes complete message content.
+
+An L0 transition $T$ factors through $A_0$ if there exists $\widehat T$ such that
+\[
+T(s,h)=\widehat T(s,A_0(h)).
+\]
+Define $h_1\sim_0 h_2$ iff $A_0(h_1)=A_0(h_2)$.
