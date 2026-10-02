@@ -1,28 +1,15 @@
 from __future__ import annotations
-
 from dataclasses import dataclass
-from typing import Iterable, TypeVar
-
-T = TypeVar("T")
-
-
+from typing import Any, Sequence
+from .base import CorrectnessResult, Problem
+from .validators import all_equal
 @dataclass(frozen=True, slots=True)
-class MultivaluedBA:
-    values: tuple[T, ...]
-
-    def agreement(self, decisions: Iterable[T]) -> bool:
-        return len(set(decisions)) <= 1
-
-    def validity(self, decision: T, correct_inputs: Iterable[T]) -> bool:
-        correct = list(correct_inputs)
-        if not correct:
-            return True
-        if len(set(correct)) == 1:
-            return decision == correct[0]
-        return decision in self.values
-
-    @staticmethod
-    def quorum(n: int, f: int) -> int:
-        if not (0 <= f < n):
-            raise ValueError("invalid n/f")
-        return n - f
+class MultivaluedBA(Problem):
+    values:tuple[Any,...]=("A","B","C")
+    name:str="Multivalued Byzantine Agreement"
+    def decision_domain(self)->Sequence[Any]: return self.values
+    def check(self,decisions,correct_inputs,correct_processes)->CorrectnessResult:
+        vals=[decisions[p] for p in correct_processes if p in decisions]
+        validity=all(v in self.values for v in vals)
+        if correct_inputs and len(set(correct_inputs.values()))==1: validity &= all(v==next(iter(correct_inputs.values())) for v in vals)
+        return CorrectnessResult(all_equal(vals),validity,len(vals)==len(correct_processes),{"decisions":vals})
