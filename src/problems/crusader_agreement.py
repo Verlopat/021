@@ -1,31 +1,15 @@
 from __future__ import annotations
-
 from dataclasses import dataclass
-from typing import Iterable, TypeVar
-
-T = TypeVar("T")
-
-
+from typing import Any, Sequence
+from .base import CorrectnessResult, Problem
+from .validators import all_equal
 @dataclass(frozen=True, slots=True)
-class CrusaderAgreementSpec:
-    """Parameterized Crusader Agreement contract.
-
-    The exact validity rule is intentionally exposed as a parameter because
-    published formulations differ on what is required when inputs conflict.
-    """
-
-    allow_outside_when_conflict: bool = True
-
-    def agreement(self, decisions: Iterable[T]) -> bool:
-        return len(set(decisions)) <= 1
-
-    def unanimity_validity(self, decision: T, correct_inputs: Iterable[T]) -> bool:
-        inputs = list(correct_inputs)
-        if not inputs:
-            return True
-        if len(set(inputs)) == 1:
-            return decision == inputs[0]
-        return self.allow_outside_when_conflict or decision in inputs
-
-    def termination(self, decided: Iterable[bool]) -> bool:
-        return all(decided)
+class CrusaderAgreement(Problem):
+    name:str="Crusader Agreement"
+    values:tuple[Any,...]=("A","B","C")
+    def decision_domain(self)->Sequence[Any]: return self.values
+    def check(self,decisions,correct_inputs,correct_processes)->CorrectnessResult:
+        vals=[decisions[p] for p in correct_processes if p in decisions]
+        validity=all(v in self.values for v in vals)
+        if correct_inputs and len(set(correct_inputs.values()))==1: validity &= all(v==next(iter(correct_inputs.values())) for v in vals)
+        return CorrectnessResult(all_equal(vals),validity,len(vals)==len(correct_processes),{"decisions":vals})
