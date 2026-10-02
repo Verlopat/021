@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from itertools import combinations, product
 from typing import Any, Iterable, Sequence
 from src.models.message import Message
@@ -42,15 +42,15 @@ def check_protocol(problem:Problem,level:str,n:int,f:int,values:Sequence[Any],*,
                 check=problem.check(result.decisions,inputs,correct)
                 if not check.passed:
                     ce=Counterexample(problem.name,level,n,f,tuple(sorted(byz)),inputs,result.decisions,repr(check.details),tuple(m.to_dict() for m in messages))
-                    return {"status":"COUNTEREXAMPLE_FOUND","counterexample":ce.__dict__,"checked_executions":idx+1}
+                    return {"status":"COUNTEREXAMPLE_FOUND","counterexample":asdict(ce),"checked_executions":idx+1}
     return {"status":"NO_COUNTEREXAMPLE_IN_FINITE_SPACE","checked_executions":max_exec,"problem":problem.name,"abstraction":level,"n":n,"f":f}
 
-def run_matrix(problems:Sequence[Problem],max_n:int=5)->dict:
+def run_matrix(problems:Sequence[Problem],max_n:int=5,max_exec:int=256)->dict:
     rows=[]
     for problem in problems:
         domain=problem.decision_domain() or ("A","B","C")
         for n in range(3,max_n+1):
             for f in range(0,min(2,n-1)+1):
                 for level in ("L0","L1","L2"):
-                    rows.append({**check_protocol(problem,level,n,f,domain), "target_boundary": n>3*f})
+                    rows.append({**check_protocol(problem,level,n,f,domain,max_exec=max_exec),"target_boundary":n>3*f})
     return {"scope":"bounded exhaustive model checking of implemented finite protocols","rows":rows}
