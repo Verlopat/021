@@ -24,8 +24,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: leanprover/lean-action@v1
-        with:
-          lake-package-directory: lean
+      - name: Install elan and Lean
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain leanprover/lean4:stable
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
       - run: lake env lean Basic.lean
         working-directory: lean
