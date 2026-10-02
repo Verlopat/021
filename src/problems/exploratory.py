@@ -1,29 +1,22 @@
 from __future__ import annotations
-
 from dataclasses import dataclass
-from typing import Iterable, TypeVar
-
-T = TypeVar("T")
-
-
+from typing import Any, Sequence
+from .base import CorrectnessResult, Problem
+from .validators import all_equal, vector_diameter
 @dataclass(frozen=True, slots=True)
-class SetAgreementSpec:
-    max_set_size: int
-
-    def valid(self, decision_set: Iterable[T], correct_inputs: Iterable[T]) -> bool:
-        decided = set(decision_set)
-        return len(decided) <= self.max_set_size and decided.issubset(set(correct_inputs))
-
-
+class SetAgreement(Problem):
+    k:int=1
+    name:str="Set Agreement"
+    def decision_domain(self)->Sequence[Any]: return ("A","B","C")
+    def check(self,decisions,correct_inputs,correct_processes)->CorrectnessResult:
+        vals=[decisions[p] for p in correct_processes if p in decisions]
+        return CorrectnessResult(len(set(map(repr,vals)))<=self.k,all(v in correct_inputs.values() for v in vals),len(vals)==len(correct_processes),{"distinct":len(set(map(repr,vals)))})
 @dataclass(frozen=True, slots=True)
-class VectorAgreementSpec:
-    epsilon: float
-
-    def coordinate_bound(self, vectors: Iterable[tuple[float, ...]]) -> float:
-        values = list(vectors)
-        if len(values) < 2:
-            return 0.0
-        return max(abs(a[j] - b[j]) for a in values for b in values for j in range(len(a)))
-
-    def agreement(self, outputs: Iterable[tuple[float, ...]]) -> bool:
-        return self.coordinate_bound(outputs) <= self.epsilon
+class VectorAgreement(Problem):
+    dimension:int=2
+    epsilon:float=0.25
+    name:str="Vector Agreement"
+    def decision_domain(self)->Sequence[Any]: return ((0.0,)*self.dimension,(0.5,)*self.dimension,(1.0,)*self.dimension)
+    def check(self,decisions,correct_inputs,correct_processes)->CorrectnessResult:
+        vals=[tuple(decisions[p]) for p in correct_processes if p in decisions]
+        return CorrectnessResult(vector_diameter(vals)<=self.epsilon,True,len(vals)==len(correct_processes),{"diameter":vector_diameter(vals)})
