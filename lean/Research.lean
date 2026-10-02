@@ -1,5 +1,3 @@
-import Basic
-
 namespace CommunicationAbstraction
 
 structure FiniteMessage where
