@@ -1,0 +1,23 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm,booktabs}
+\newtheorem{theorem}{Theorem}
+\title{A Communication-Abstraction Framework for Byzantine Resilience}
+\author{Research Software Prototype}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This reproducible software package formalizes a three-level communication-information hierarchy (L0, L1, L2), supplies finite indistinguishability witnesses, and provides hooks for proving problem-specific Byzantine resilience results. General separation and optimal-resilience claims are intentionally represented as theorem targets until the exact problem semantics and adversary assumptions are fixed.
+\end{abstract}
+
+\input{definitions}
+\input{theorems}
+\input{protocols}
+\input{evaluation}
+
+\section{Reproducibility}
+Run \texttt{python3 Main.py}; each invocation creates a fresh directory under \texttt{output/testN}.
+
+\bibliographystyle{plain}
+\bibliography{references}
+\end{document}
